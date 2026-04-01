@@ -1,0 +1,19 @@
+{
+  "users": {},
+  "transactions": [],
+  "insights": [
+    {
+      "agent": "Risk Agent",
+      "response": "🟢 Safe\nImplication: With a savings rate of 44%, you have a solid foundation for managing your expenses. However, your recent spending habits suggest that you're spending a significant portion of your income on essential expenses like rent and food. To ensure you can afford the new laptop, consider allocating a smaller portion of your income towards discretionary spending and prioritize saving for emergencies.",
+      "timestamp": "2026-04-01T09:42:03.893Z"
+    }
+  ],
+  "chatHistory": [
+    {
+      "query": "Can I afford to buy a new laptop for my job?",
+      "agent": "Risk Agent",
+      "timestamp": "2026-04-01T09:42:02.489Z"
+    }
+  ],
+  "financialProfile": null
+}
