@@ -120,7 +120,7 @@ Experience the intelligence firsthand:
 
 ### 1. Clone Repo
 ```bash
-git clone https://github.com/your-username/finovo-ai.git
+git clone https://github.com/NaveenCK-10/finovo-ai.git
 cd finovo-ai
 ```
 
