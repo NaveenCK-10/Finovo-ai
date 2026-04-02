@@ -131,7 +131,7 @@ function AppContent() {
       <div className="main-content">
         <header className="app-header">
           <div className="app-logo">
-            <img src="/favicon.svg" alt="Finovo AI" />
+            <img src="/favicon.ico" alt="Finovo AI" />
             Finovo AI
           </div>
           <nav className="navigation">

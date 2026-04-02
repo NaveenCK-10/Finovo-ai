@@ -2,14 +2,18 @@
   "name": "finovo-ai-backend",
   "version": "1.0.0",
   "type": "module",
-  "main": "server.js",
+  "main": "index.js",
+  "engines": {
+    "node": "18"
+  },
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^4.5.0"
   }
 }

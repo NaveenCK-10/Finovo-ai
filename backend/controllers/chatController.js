@@ -3,6 +3,14 @@ import { getCacheKey, getCached, setCache } from '../services/llmService.js';
 import { buildUserPrompt, routeAgentLogic } from '../utils/promptBuilder.js';
 import logger from '../utils/logger.js';
 import { db } from '../database/db.js';
+import { adminDb } from '../database/firebaseAdmin.js';
+import admin from 'firebase-admin';
+
+// Initialize firebase admin for backend firestore access
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+const firestoreDb = admin.firestore();
 
 // Modular agents
 import { riskAgent, riskFallback, config as riskConfig } from '../services/agents/riskAgent.js';
@@ -26,26 +34,45 @@ function generateConfidence() {
   return Math.floor(Math.random() * 11) + 85; // 85 to 95 inclusive
 }
 
+// Part 4.4 — Rate Limit Cache
+const rateLimitCache = new Map();
+
 // Part 2 — Fetch financial data from backend storage, keyed by uid
 // DO NOT trust financialData sent by frontend
-function getBackendFinancialData(uid) {
+async function getBackendFinancialData(uid) {
   if (!uid) return null;
-  const profile = db.getObj('financialProfile');
-  // If we have a uid-keyed profile stored from /api/memory/sync, use it
-  if (profile && profile.uid === uid) {
+  
+  try {
+    const userDoc = await firestoreDb.collection('users').doc(uid).get();
+    let data = {};
+    if (userDoc.exists) {
+      data = userDoc.data();
+    }
+
+    const transSnap = await firestoreDb.collection('transactions').where('uid', '==', uid).get();
+    let transactions = [];
+    if (!transSnap.empty) {
+      transSnap.forEach(doc => {
+        transactions.push({ id: doc.id, ...doc.data() });
+      });
+    }
+
     return {
-      income: safeNum(profile.income, 60000),
-      spent: safeNum(profile.spent, 20000),
-      remaining: safeNum(profile.savings || profile.remaining, 40000),
-      transactions: Array.isArray(profile.transactions) ? profile.transactions : []
+      income: safeNum(data.income, 60000),
+      spent: safeNum(data.spent, 20000),
+      remaining: safeNum(data.savings || data.remaining, 40000),
+      transactions: transactions
     };
+  } catch (error) {
+    logger.error('Error fetching user data from Firestore', error);
   }
-  // No stored profile for this user — use safe defaults
+
+  // No stored profile or error — use safe defaults
   return {
-    income: safeNum(profile?.income, 60000),
-    spent: safeNum(profile?.spent, 20000),
-    remaining: safeNum(profile?.remaining, 40000),
-    transactions: Array.isArray(profile?.transactions) ? profile.transactions : []
+    income: 60000,
+    spent: 20000,
+    remaining: 40000,
+    transactions: []
   };
 }
 
@@ -57,8 +84,15 @@ export const handleSingleChat = async (req, res) => {
     // Part 2 — Extract uid from trusted header; DO NOT use frontend-provided uid
     const uid = req.headers['x-user-uid'] || 'anonymous';
 
+    // Part 4.4 — Rate Limiting
+    const now = Date.now();
+    if (rateLimitCache.has(uid) && now - rateLimitCache.get(uid) < 1000) {
+      return errorResponse(res, 'Rate limit exceeded. Please wait a moment.', 429);
+    }
+    rateLimitCache.set(uid, now);
+
     // Part 2 — Fetch financial data from backend, never trust frontend values
-    const financialData = getBackendFinancialData(uid);
+    const financialData = await getBackendFinancialData(uid);
 
     const lowerMessage = message.toLowerCase();
     const agentKey = routeAgentLogic(lowerMessage);
@@ -114,8 +148,15 @@ export const handleCollaborate = async (req, res) => {
     // Part 2 — Extract uid from trusted header
     const uid = req.headers['x-user-uid'] || 'anonymous';
 
+    // Part 4.4 — Rate Limiting
+    const now = Date.now();
+    if (rateLimitCache.has(uid) && now - rateLimitCache.get(uid) < 1000) {
+      return errorResponse(res, 'Rate limit exceeded. Please wait a moment.', 429);
+    }
+    rateLimitCache.set(uid, now);
+
     // Part 2 — Backend-fetched financial data
-    const financialData = getBackendFinancialData(uid);
+    const financialData = await getBackendFinancialData(uid);
 
     const requestedAgents = agents || ['risk', 'advisor'];
     await db.push('chatHistory', { query: message, agent: 'Multi-Agent', timestamp: new Date().toISOString(), uid });

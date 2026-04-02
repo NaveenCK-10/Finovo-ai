@@ -1,11 +1,18 @@
 import { invokeLLM } from '../llmService.js';
 import dotenv from 'dotenv';
+import * as functions from 'firebase-functions';
+
 dotenv.config();
+
+let fallbackKey = process.env.NVIDIA_RISK_API_KEY || process.env.NVIDIA_API_KEY;
+try {
+  if (!fallbackKey && functions.config().nvidia) fallbackKey = functions.config().nvidia.key;
+} catch(e) {}
 
 export const config = {
   name: 'Risk Agent',
   model: 'meta/llama-3.2-1b-instruct',
-  apiKey: process.env.NVIDIA_RISK_API_KEY || process.env.NVIDIA_API_KEY,
+  apiKey: fallbackKey,
   maxTokens: 150,
   systemPrompt: `You are Finovo Risk Engine — a financial risk analysis AI with contextual memory.
 You remember past conversations and user patterns.

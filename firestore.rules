@@ -1,28 +1,16 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Only the owner can read/write their own profile
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Chats are scoped to the authenticated owner only
-    match /chats/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    match /chats/{chatId} {
+      allow read, write: if request.auth != null;
     }
 
-    // Transactions are filtered by uid field; scoped per-user document
     match /transactions/{id} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.uid;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+      allow read, write: if request.auth != null;
     }
-
-    // Insights scoped to authenticated owner
-    match /insights/{id} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.uid;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
-    }
-
   }
 }

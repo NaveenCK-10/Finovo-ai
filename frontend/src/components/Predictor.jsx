@@ -100,7 +100,7 @@ export default function Predictor() {
     const memoryContext = getMemoryContext();
 
     try {
-      const res = await fetch('http://localhost:3001/api/chat', {
+      const res = await fetch(`${BASE_URL}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

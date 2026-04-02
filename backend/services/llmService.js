@@ -1,9 +1,17 @@
 import dotenv from 'dotenv';
 import logger from '../utils/logger.js';
 
+import * as functions from 'firebase-functions';
+
 dotenv.config();
 
-const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY;
+// Attempt to get key from process.env, fallback to Firebase functions config
+let NVIDIA_API_KEY = process.env.NVIDIA_API_KEY;
+try {
+  if (!NVIDIA_API_KEY && functions.config().nvidia) {
+    NVIDIA_API_KEY = functions.config().nvidia.key;
+  }
+} catch(e) {}
 const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 
 // Simple in-memory LRU Cache (max 100 entries)
