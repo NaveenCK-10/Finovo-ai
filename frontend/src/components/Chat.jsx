@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFinovo } from '../context/FinovoContext';
-import { db, isFirebaseConfigured } from '../firebase';
+import { db, auth, isFirebaseConfigured } from '../firebase';
 import { doc, onSnapshot, arrayUnion, updateDoc, setDoc } from 'firebase/firestore';
 
 const AGENTS = {
@@ -290,11 +290,13 @@ export default function Chat() {
         if (userText.toLowerCase().includes('future') || userText.toLowerCase().includes('long')) agents.push('future');
         if (agents.length === 1) agents.push('risk'); // Always add a second perspective
         
+        const token = (auth && auth.currentUser) ? await auth.currentUser.getIdToken() : '';
+
         const res = await fetch(`${BASE_URL}/chat/collaborate`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-user-uid': currentUser?.uid || 'anonymous'
+            'Authorization': `Bearer ${token}`
           },
           signal: controller.signal,
           body: JSON.stringify({
@@ -316,11 +318,13 @@ export default function Chat() {
         };
       } else {
         // Standard single-agent request with memory context
+        const token = (auth && auth.currentUser) ? await auth.currentUser.getIdToken() : '';
+
         const res = await fetch(`${BASE_URL}/chat`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-user-uid': currentUser?.uid || 'anonymous'
+            'Authorization': `Bearer ${token}`
           },
           signal: controller.signal,
           body: JSON.stringify({

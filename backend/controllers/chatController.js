@@ -37,10 +37,21 @@ function generateConfidence() {
 // Part 4.4 — Rate Limit Cache
 const rateLimitCache = new Map();
 
+const profileCache = new Map();
+const PROFILE_TTL = 30000; // 30 seconds
+
 // Part 2 — Fetch financial data from backend storage, keyed by uid
 // DO NOT trust financialData sent by frontend
 async function getBackendFinancialData(uid) {
   if (!uid) return null;
+  
+  const now = Date.now();
+  if (profileCache.has(uid)) {
+    const cached = profileCache.get(uid);
+    if (now - cached.timestamp < PROFILE_TTL) {
+      return cached.data;
+    }
+  }
   
   try {
     const userDoc = await firestoreDb.collection('users').doc(uid).get();
@@ -57,12 +68,15 @@ async function getBackendFinancialData(uid) {
       });
     }
 
-    return {
+    const finalData = {
       income: safeNum(data.income, 60000),
       spent: safeNum(data.spent, 20000),
       remaining: safeNum(data.savings || data.remaining, 40000),
       transactions: transactions
     };
+
+    profileCache.set(uid, { data: finalData, timestamp: now });
+    return finalData;
   } catch (error) {
     logger.error('Error fetching user data from Firestore', error);
   }
@@ -81,8 +95,8 @@ export const handleSingleChat = async (req, res) => {
     const { message, memoryContext } = req.body;
     if (!message) return badRequest(res, 'Message is required');
 
-    // Part 2 — Extract uid from trusted header; DO NOT use frontend-provided uid
-    const uid = req.headers['x-user-uid'] || 'anonymous';
+    // Part 2 & Security — Extract verified uid natively from middleware
+    const uid = req.user.uid;
 
     // Part 4.4 — Rate Limiting
     const now = Date.now();
@@ -145,8 +159,8 @@ export const handleCollaborate = async (req, res) => {
     const { message, memoryContext, agents } = req.body;
     if (!message) return badRequest(res, 'Message is required');
 
-    // Part 2 — Extract uid from trusted header
-    const uid = req.headers['x-user-uid'] || 'anonymous';
+    // Part 2 & Security — Extract verified uid natively from middleware
+    const uid = req.user.uid;
 
     // Part 4.4 — Rate Limiting
     const now = Date.now();

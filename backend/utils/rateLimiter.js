@@ -7,11 +7,9 @@ const MAX_REQUESTS = 1; // max requests per window per user
 const requestMap = new Map(); // uid => { count, windowStart }
 
 export function rateLimitByUser(req, res, next) {
-  // Extract uid from the custom header set by frontend
-  const uid = req.headers['x-user-uid'];
-
-  // Skip rate limiting for anonymous/unauthenticated (handled by Firestore rules)
-  if (!uid || uid === 'anonymous') return next();
+  // Extract uid automatically supplied by the previous requireAuth middleware
+  const uid = req.user?.uid;
+  if (!uid) return next();
 
   const now = Date.now();
   const entry = requestMap.get(uid);

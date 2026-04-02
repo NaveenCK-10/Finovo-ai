@@ -13,7 +13,7 @@ export function buildUserPrompt(message, financialData, memoryContext) {
     .map(t => `${t.category || 'Other'}:$${safeNum(t.amount)}`)
     .join(', ');
   
-  let prompt = `Query: ${message}\nFinancial Data: income=$${income}, spent=$${spent}, balance=$${remaining}\nRecent transactions: [${txList || 'none'}]`;
+  let prompt = `<<CORE PROFILE>>\n• Income: $${income}\n• Spend: $${spent}\n• Bal: $${remaining}\n• TXs: [${txList || 'none'}]\n\n<<USER QUERY>>\n${message}\n\n<<SYSTEM DIRECTIVE>>\nAnalyze deterministically based ONLY on provided figures. Maximize actionable clarity.`;
 
   if (memoryContext) {
     if (memoryContext.personality) prompt += `\n${memoryContext.personality}`;

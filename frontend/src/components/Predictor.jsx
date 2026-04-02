@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFinovo } from '../context/FinovoContext';
+import { auth } from '../firebase';
 
 export default function Predictor() {
   const { financialData, getMemoryContext, recordQuery, recordInsight, triggerSystemSync, currentUser } = useFinovo();
@@ -100,11 +101,13 @@ export default function Predictor() {
     const memoryContext = getMemoryContext();
 
     try {
+      const token = (auth && auth.currentUser) ? await auth.currentUser.getIdToken() : '';
+
       const res = await fetch(`${BASE_URL}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-uid': currentUser?.uid || 'anonymous'
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           message: `Predict the long-term impact of: ${query}`,

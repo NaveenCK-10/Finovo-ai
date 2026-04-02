@@ -6,6 +6,7 @@ import { db } from './database/db.js';
 
 import chatRoutes from './routes/chatRoutes.js';
 import memoryRoutes from './routes/memoryRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 
 import * as functions from 'firebase-functions';
 
@@ -13,11 +14,11 @@ dotenv.config();
 
 const app = express();
 
-// Allow the custom x-user-uid header used for backend trust identification
+// CORS setup
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-user-uid'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
 
@@ -27,6 +28,7 @@ app.use(logger.request);
 // Modular Routes
 app.use('/api/chat', chatRoutes);    // Use standardize responses, modular agents
 app.use('/api/memory', memoryRoutes); // Persistent database load/save
+app.use('/api/analytics', analyticsRoutes); // Advanced telemetry and system insights
 
 // Health check returns standardized format as well
 app.use('/health', (req, res) => {

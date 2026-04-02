@@ -24,6 +24,12 @@
       "response": "Your current balance of $40000 and low recent spending suggest you're still on track with your savings goals, with a spending ratio of 33% which is below your average of 56%. \nReview your budget to ensure you're maintaining this positive trend and make adjustments to prioritize essential expenses, such as rent and food, to solidify your long-term financial stability.\n\nAI Confidence: 94%",
       "timestamp": "2026-04-02T05:00:01.219Z",
       "uid": "demo_user_123"
+    },
+    {
+      "agent": "Risk Agent",
+      "response": "🟢 Safe / 🔴 Not Recommended + Implication: Consider a 20% increase in income to $80000, which would increase spending by $1600. With a savings rate of 44%, you may need to adjust your budget to accommodate the increased spending. Implication: Review your budget and consider allocating 20% of your new income towards savings.",
+      "timestamp": "2026-04-02T09:34:09.434Z",
+      "uid": "anonymous"
     }
   ],
   "chatHistory": [
@@ -49,6 +55,12 @@
       "agent": "Advisor Agent",
       "timestamp": "2026-04-02T04:59:59.572Z",
       "uid": "demo_user_123"
+    },
+    {
+      "query": "What is my predicted spending and should I buy a new laptop for 2000 dollars?",
+      "agent": "Multi-Agent",
+      "timestamp": "2026-04-02T09:34:05.424Z",
+      "uid": "anonymous"
     }
   ],
   "financialProfile": null

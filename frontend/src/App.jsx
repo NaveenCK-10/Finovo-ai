@@ -4,6 +4,7 @@ import { FinovoProvider, useFinovo } from './context/FinovoContext';
 import Dashboard from './components/Dashboard';
 import Predictor from './components/Predictor';
 import Chat from './components/Chat';
+import Portfolio from './components/Portfolio';
 import Auth from './components/Auth';
 import { auth, isFirebaseConfigured } from './firebase';
 import { signOut } from 'firebase/auth';
@@ -131,12 +132,12 @@ function AppContent() {
       <div className="main-content">
         <header className="app-header">
           <div className="app-logo">
-            <img src="/favicon.ico" alt="Finovo AI" />
+            <img src="/favicon.svg" alt="Finovo AI" />
             Finovo AI
           </div>
           <nav className="navigation">
             <div className="nav-pills">
-              {['dashboard', 'predictor', 'chat'].map((tab) => (
+              {['dashboard', 'portfolio', 'predictor', 'chat'].map((tab) => (
                 <button
                   key={tab}
                   className={`nav-pill ${activeTab === tab ? 'active' : ''}`}
@@ -164,26 +165,6 @@ function AppContent() {
           </nav>
         </header>
 
-        {/* Hero Section (Only in Dashboard) */}
-        <AnimatePresence mode="wait">
-          {activeTab === 'dashboard' && (
-            <motion.header
-              key="hero"
-              className="hero-section"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="hero-glow"></div>
-              <h1 className="hero-title">Financial Intelligence</h1>
-              <h2 className="hero-subtitle">
-                AI models continuously learning from your financial behavior.
-              </h2>
-            </motion.header>
-          )}
-        </AnimatePresence>
-
         {/* Dynamic Content area */}
         <AnimatePresence mode="wait">
           <motion.div
@@ -194,6 +175,7 @@ function AppContent() {
             transition={{ duration: 0.4 }}
           >
             {activeTab === 'dashboard' && <Dashboard />}
+            {activeTab === 'portfolio' && <Portfolio />}
             {activeTab === 'predictor' && <Predictor />}
             {activeTab === 'chat' && <Chat />}
           </motion.div>

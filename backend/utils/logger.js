@@ -12,7 +12,15 @@ export default {
   // Part 4.1+4.2 — Structured request + response-time middleware
   request: (req, res, next) => {
     const start = Date.now();
-    const uid = req.headers['x-user-uid'] || 'anonymous';
+    let uid = 'anonymous';
+    try {
+      const auth = req.headers.authorization;
+      if (auth && auth.startsWith('Bearer ')) {
+        const payload = Buffer.from(auth.split(' ')[1].split('.')[1], 'base64').toString();
+        uid = JSON.parse(payload).user_id || uid;
+      }
+    } catch (e) {}
+
     const endpoint = req.originalUrl;
 
     console.log(`[AI REQUEST] [${new Date().toISOString()}] uid: ${uid} | endpoint: ${endpoint} | method: ${req.method}`);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useFinovo } from '../context/FinovoContext';
 import TransactionForm from './TransactionForm';
 
@@ -143,6 +143,19 @@ export default function Dashboard() {
     return () => clearInterval(aiInterval);
   }, [dynamicInsights.length]);
 
+  // Category Breakdown Data (New Feature)
+  const categoryData = React.useMemo(() => {
+    const safeNum = (v) => { const n = Number(v); return isNaN(n) ? 0 : n; };
+    const cats = financialData.transactions.reduce((acc, tx) => {
+      const category = tx.category || 'Other';
+      acc[category] = (acc[category] || 0) + safeNum(tx.amount);
+      return acc;
+    }, {});
+    const data = Object.keys(cats).map(name => ({ name, value: cats[name] })).sort((a,b) => b.value - a.value);
+    return data.length ? data : [{ name: 'No Data', value: 1 }];
+  }, [financialData.transactions]);
+  const PIE_COLORS = ['var(--blue)', 'var(--purple)', 'var(--cyan)', 'var(--green)', 'var(--yellow)', 'var(--red)'];
+
   // Current insight
   const currentInsight = dynamicInsights[insightIndex % dynamicInsights.length];
 
@@ -172,58 +185,50 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      {/* 🧠 AI Personality Badge */}
+      {/* 👑 HERO INSIGHT CARD (NEW) */}
       <motion.div 
-        className="glass-card personality-card"
+        className="glass-card hero-insight-card"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="personality-badge-row">
-          <div className="personality-main">
-            <span className="personality-emoji">{personality.emoji}</span>
-            <div>
-              <div className="personality-label">{currentUser?.email || 'Authenticated User'}</div>
-              <div className="personality-type" style={{ color: personality.color }}>
-                {personality.type}
-              </div>
-            </div>
+        <div className="hero-header">
+          <div className="hero-title-section">
+            <span className="hero-icon">🏦</span>
+            <h2 className="hero-title-text">Your Financial Intelligence</h2>
           </div>
-          <div className="personality-stats">
-            <div className="personality-stat">
-              <span className="personality-stat-label">Risk</span>
-              <span className="personality-stat-value" style={{ 
-                color: personality.riskLevel === 'High' ? 'var(--red)' : 
-                       personality.riskLevel === 'Medium' ? 'var(--yellow)' : 'var(--green)' 
-              }}>{personality.riskLevel}</span>
-            </div>
-            <div className="personality-stat">
-              <span className="personality-stat-label">Savings</span>
-              <span className="personality-stat-value" style={{ color: 'var(--green)' }}>{personality.savingsRate}%</span>
-            </div>
-            <div className="personality-stat">
-              <span className="personality-stat-label">Top Category</span>
-              <span className="personality-stat-value">{personality.topCategory}</span>
-            </div>
+          <div className="hero-risk-badge" style={{ 
+            color: personality.riskLevel === 'High' ? 'var(--red)' : personality.riskLevel === 'Medium' ? 'var(--yellow)' : 'var(--green)',
+            borderColor: personality.riskLevel === 'High' ? 'rgba(239,68,68,0.3)' : personality.riskLevel === 'Medium' ? 'rgba(245,158,11,0.3)' : 'rgba(16,185,129,0.3)'
+          }}>
+            {personality.riskLevel} Risk
           </div>
         </div>
-        {/* Anomaly alerts */}
-        <AnimatePresence>
-          {anomalies.length > 0 && (
-            <motion.div 
-              className="anomaly-alerts"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-            >
-              {anomalies.slice(0, 2).map((a, i) => (
-                <div key={i} className={`anomaly-chip severity-${a.severity}`}>
-                  {a.severity === 'high' ? '🔴' : a.severity === 'medium' ? '🟡' : '🔵'} {a.text}
-                </div>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
+
+        <div className="hero-main-content">
+          <div className="hero-score-block">
+            <div className="hero-score-value count-up-value {scoreFlash ? 'stat-flash' : ''}">{liveScore}</div>
+            <div className="hero-score-label">Stability Score</div>
+          </div>
+          <div className="hero-divider" />
+          <div className="hero-insight-block">
+            <div className="hero-insight-label">✧ AI Insight</div>
+            <div className="hero-insight-text">
+              <span className={`highlight insight-${currentInsight?.type || 'positive'}`}>
+                {currentInsight?.text || 'System monitoring active.'}
+              </span>
+            </div>
+            {anomalies.length > 0 && (
+              <div className="hero-anomalies">
+                {anomalies.slice(0, 1).map((a, i) => (
+                  <span key={i} className={`anomaly-chip severity-${a.severity}`}>
+                    {a.severity === 'high' ? '🔴' : a.severity === 'medium' ? '🟡' : '🔵'} {a.text}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </motion.div>
 
       {/* ─────────────────────────────────────────────
@@ -243,11 +248,29 @@ export default function Dashboard() {
               <span className="hiw-title">🧠 How Finovo AI works</span>
               <button className="hiw-dismiss" onClick={dismissOnboarding} aria-label="Dismiss">✕</button>
             </div>
-            <ul className="hiw-list">
-              <li><span className="hiw-dot hiw-dot-green" />Track your expenses with the <strong>Add Expense</strong> button</li>
-              <li><span className="hiw-dot hiw-dot-blue" />AI analyzes your <strong>spending patterns</strong> over time</li>
-              <li><span className="hiw-dot hiw-dot-purple" />Get personalized <strong>predictions & smart advice</strong> in Chat</li>
-            </ul>
+            <div className="hiw-horizontal-steps">
+              <div className="hiw-step">
+                <div className="hiw-step-icon">1</div>
+                <div className="hiw-step-content">
+                  <strong>Track Spending</strong>
+                  <span>Add your expenses to start.</span>
+                </div>
+              </div>
+              <div className="hiw-step">
+                <div className="hiw-step-icon">2</div>
+                <div className="hiw-step-content">
+                  <strong>AI Analyzes</strong>
+                  <span>Pattern recognition takes over.</span>
+                </div>
+              </div>
+              <div className="hiw-step">
+                <div className="hiw-step-icon">3</div>
+                <div className="hiw-step-content">
+                  <strong>Get Predictions</strong>
+                  <span>Smart advice in Chat / Predictor.</span>
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -257,7 +280,7 @@ export default function Dashboard() {
         <TransactionForm />
       </div>
 
-      <div className="stats-grid">
+      <div className="smart-analytics-grid">
         <div className="glass-card stat-card">
           <div className="stat-header">
             <div className="stat-icon" style={{color: 'var(--blue)'}}>⏣</div>
@@ -266,29 +289,42 @@ export default function Dashboard() {
           <div className="stat-value count-up-value">
             ${useCountUp(totalSpend).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
           </div>
-          <div className="stat-diff diff-warning">↑ 12% vs last operating period</div>
+          <div className="stat-diff diff-warning">↑ 12% vs last period</div>
         </div>
+        
         <div className="glass-card stat-card">
           <div className="stat-header">
             <div className="stat-icon" style={{color: 'var(--green)'}}>⎈</div>
-            <div className="stat-label">Savings Potential</div>
+            <div className="stat-label">Savings Rate</div>
           </div>
           <div className="stat-value count-up-value">
-            ${useCountUp(financialData.remaining * 0.09).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}
+            {personality.savingsRate}%
           </div>
           <div className="stat-diff diff-positive">↑ Optimal Allocation</div>
         </div>
-        <div className={`glass-card stat-card ${scoreFlash ? 'stat-flash' : ''}`}>
+
+        <div className="glass-card stat-card">
           <div className="stat-header">
-            <div className="stat-icon" style={{color: 'var(--cyan)'}}>✧</div>
-            <div className="stat-label">Live Stability Index</div>
+            <div className="stat-icon" style={{color: 'var(--yellow)'}}>⚠</div>
+            <div className="stat-label">System Risk</div>
           </div>
           <div className="stat-value">
-            {liveScore}<span style={{fontSize: '1rem', color: 'var(--text-secondary)'}}>/100</span>
+            {personality.riskLevel}
           </div>
-          <div className="stat-diff diff-positive">
-            {isSyncing ? '⚡ AI Syncing…' : 'AI Monitoring Active'}
+          <div className={`stat-diff ${personality.riskLevel === 'High' ? 'diff-warning' : 'diff-positive'}`}>
+            {personality.riskLevel === 'High' ? '↓ Needs attention' : '↑ Secure'}
           </div>
+        </div>
+
+        <div className="glass-card stat-card">
+          <div className="stat-header">
+            <div className="stat-icon" style={{color: 'var(--purple)'}}>⚲</div>
+            <div className="stat-label">Forecast Horizon</div>
+          </div>
+          <div className="stat-value">
+            30 Days
+          </div>
+          <div className="stat-diff diff-positive">↑ AI Tracking Active</div>
         </div>
       </div>
 
@@ -356,13 +392,44 @@ export default function Dashboard() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
               <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
               <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
-              <Tooltip 
+              <RechartsTooltip 
                 contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--glass-border)', borderRadius: '8px', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
                 itemStyle={{ color: 'var(--text-primary)' }}
               />
               <Area type="monotone" dataKey="current" stroke="var(--blue)" strokeWidth={3} fillOpacity={1} fill="url(#colorCurrent)" />
               <Area type="monotone" dataKey="predicted" stroke="var(--purple)" strokeWidth={3} strokeDasharray="5 5" fillOpacity={1} fill="url(#colorPredicted)" />
             </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* 🥧 CATEGORY BREAKDOWN CHART (NEW) */}
+        <div className="glass-card pie-chart-panel" style={{ height: '340px' }}>
+          <div className="ctx-label-row">
+            <span className="ctx-label ctx-label-insight" title="Distribution of your recorded expenses">✦ Breakdown</span>
+          </div>
+          <h3 className="card-title">◴ Category Spend</h3>
+          <ResponsiveContainer width="100%" height="85%">
+            <PieChart>
+              <Pie
+                data={categoryData}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={85}
+                paddingAngle={5}
+                dataKey="value"
+                stroke="transparent"
+              >
+                {categoryData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                ))}
+              </Pie>
+              <RechartsTooltip 
+                contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--glass-border)', borderRadius: '8px', boxShadow: '0 4px 20px rgba(0,0,0,0.3)', color: '#fff' }}
+                itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                formatter={(value) => `$${value}`}
+              />
+            </PieChart>
           </ResponsiveContainer>
         </div>
 
