@@ -104,29 +104,37 @@ Experience the intelligence firsthand:
 <details open>
 <summary><b>Dashboard</b> — <i>Live AI Metrics & Stability System</i></summary>
 
-<br>
-<img src="./docs/assets/dashboard.png" alt="Dashboard" width="800" style="border-radius: 12px;" />
+<div align="center">
+  <br>
+  <img src="./docs/assets/dashboard.png" alt="Dashboard" width="850" style="border-radius: 12px; box-shadow: 0 4px 30px rgba(0,0,0,0.15);" />
+</div>
 </details>
 
 <details>
 <summary><b>AI Chat</b> — <i>Multi-Agent Neural Conversational Interface</i></summary>
 
-<br>
-<img src="./docs/assets/chat.png" alt="AI Chat" width="800" style="border-radius: 12px;" />
+<div align="center">
+  <br>
+  <img src="./docs/assets/chat.png" alt="AI Chat" width="850" style="border-radius: 12px; box-shadow: 0 4px 30px rgba(0,0,0,0.15);" />
+</div>
 </details>
 
 <details>
 <summary><b>Predictor</b> — <i>Financial Forecasting ("Can I afford this?")</i></summary>
 
-<br>
-<img src="./docs/assets/predictor.png" alt="Predictor" width="800" style="border-radius: 12px;" />
+<div align="center">
+  <br>
+  <img src="./docs/assets/predictor.png" alt="Predictor" width="850" style="border-radius: 12px; box-shadow: 0 4px 30px rgba(0,0,0,0.15);" />
+</div>
 </details>
 
 <details>
 <summary><b>Portfolio Tracker</b> — <i>Crypto & Stock Asset Tracking</i></summary>
 
-<br>
-<img src="./docs/assets/portfolio.png" alt="Portfolio Tracker" width="800" style="border-radius: 12px;" />
+<div align="center">
+  <br>
+  <img src="./docs/assets/portfolio.png" alt="Portfolio Tracker" width="850" style="border-radius: 12px; box-shadow: 0 4px 30px rgba(0,0,0,0.15);" />
+</div>
 </details>
 
 ---
